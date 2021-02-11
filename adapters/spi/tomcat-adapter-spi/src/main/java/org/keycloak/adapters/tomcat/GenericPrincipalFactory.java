@@ -22,7 +22,6 @@ import org.apache.catalina.realm.GenericPrincipal;
 
 import javax.security.auth.Subject;
 import java.security.Principal;
-import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -40,11 +39,11 @@ public abstract class GenericPrincipalFactory {
         Subject subject = new Subject();
         Set<Principal> principals = subject.getPrincipals();
         principals.add(identity);
-        Group[] roleSets = getRoleSets(roleSet);
+        SimpleGroup[] roleSets = getRoleSets(roleSet);
         for (int g = 0; g < roleSets.length; g++) {
-            Group group = roleSets[g];
+            SimpleGroup group = roleSets[g];
             String name = group.getName();
-            Group subjectGroup = createGroup(name, principals);
+            SimpleGroup subjectGroup = createGroup(name, principals);
             // Copy the group members to the Subject group
             Enumeration<? extends Principal> members = group.members();
             while (members.hasMoreElements()) {
@@ -76,7 +75,7 @@ public abstract class GenericPrincipalFactory {
             Set<Principal> principals = subject.getPrincipals();
             if (principals != null && !principals.isEmpty()) {
                 for (Principal p : principals) {
-                    if (!(p instanceof Group) && principal == null) {
+                    if (!(p instanceof SimpleGroup) && principal == null) {
                         principal = p;
                     }
 //                    if (p instanceof Group) {
@@ -93,14 +92,14 @@ public abstract class GenericPrincipalFactory {
         return callerPrincipal == null ? principal : callerPrincipal;
     }
 
-    protected Group createGroup(String name, Set<Principal> principals) {
-        Group roles = null;
+    protected SimpleGroup createGroup(String name, Set<Principal> principals) {
+        SimpleGroup roles = null;
         Iterator<Principal> iter = principals.iterator();
         while (iter.hasNext()) {
             Object next = iter.next();
-            if (!(next instanceof Group))
+            if (!(next instanceof SimpleGroup))
                 continue;
-            Group grp = (Group) next;
+            SimpleGroup grp = (SimpleGroup) next;
             if (grp.getName().equals(name)) {
                 roles = grp;
                 break;
@@ -114,9 +113,9 @@ public abstract class GenericPrincipalFactory {
         return roles;
     }
 
-    protected Group[] getRoleSets(Collection<String> roleSet) {
+    protected SimpleGroup[] getRoleSets(Collection<String> roleSet) {
         SimpleGroup roles = new SimpleGroup("Roles");
-        Group[] roleSets = {roles};
+        SimpleGroup[] roleSets = {roles};
         for (String role : roleSet) {
             roles.addMember(new SimplePrincipal(role));
         }
